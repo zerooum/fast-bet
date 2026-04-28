@@ -1,0 +1,58 @@
+# --- JVM / Maven / Gradle ---
+target/
+build/
+*.class
+*.jar
+*.war
+*.ear
+.gradle/
+hs_err_pid*
+replay_pid*
+
+# --- Quarkus ---
+.quarkus/
+quarkus.log
+
+# --- Rust / Cargo ---
+# Keep Cargo.lock for binaries, ignore for libraries.
+# The gateway is a binary, so its Cargo.lock SHOULD be committed.
+# Library crates (if any) should add a local .gitignore with Cargo.lock.
+**/target/
+**/*.rs.bk
+
+# --- Node / Angular / Ionic ---
+node_modules/
+dist/
+.angular/
+.ionic/
+www/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Docker / Postgres / Kafka local volumes ---
+infra/data/
+infra/.env
+infra/**/pgdata/
+infra/**/kafka-data/
+infra/**/redis-data/
+
+# --- Editors / OS ---
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# --- Env files (do not commit secrets) ---
+.env
+.env.local
+!**/.env.example
+
+# --- Coverage / test reports ---
+coverage/
+*.lcov
+jacoco.exec
