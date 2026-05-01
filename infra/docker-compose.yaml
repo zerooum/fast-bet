@@ -1,5 +1,16 @@
 name: fastbet
 
+# Trust boundary note (see docs/local-development.md):
+# When the `identity` (and other business services) are dockerized in a
+# future change, by default they should publish ports on `localhost` to
+# keep `make smoke` ergonomic. For prod-like topologies, declare them with
+# `profiles: ["gateway-only"]` on a `ports:`-less variant so
+#   docker compose --profile gateway-only up
+# omits the host publication and forces all traffic through the gateway.
+# Identity already enforces the public-route protections (forbidden auth
+# headers, per-IP rate limit, trusted-proxy XFF) regardless of the chosen
+# topology.
+
 networks:
   fastbet:
     driver: bridge

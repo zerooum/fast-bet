@@ -64,6 +64,37 @@ The current change (`init-fastbet-phase1`) only delivers Phase 0
 (infrastructure + principles). The vertical slices listed in
 [roadmap.md](roadmap.md) populate `services/`, `gateway/`, and `frontend/`.
 
+## Trust boundary in local vs prod-like topologies
+
+The Gateway is the supported entry point for clients. Use
+`http://localhost:8080/signup` for all signup smoke tests and local
+development. The Gateway injects `X-Edge-Token` on every upstream call to
+Identity, so requests through the Gateway just work.
+
+In `infra/docker-compose.yaml` business services (currently Identity) also
+publish their port on `localhost` for diagnostics, but direct calls to
+`http://localhost:8081/signup` now require the `X-Edge-Token` header.
+Forbidden-header checks (`Authorization`, `X-User-*`) still return
+`400 Bad Request` without an edge token because that guard fires first.
+
+Each business service enforces these public-route protections at its own edge:
+
+- **`EdgeTokenFilter`**: requires a valid `X-Edge-Token` on every business
+  API request. Missing or wrong tokens → `401 Unauthorized`. Configure
+  `IDENTITY_EDGE_TOKEN` in both the Gateway and Identity (see
+  `infra/.env.example` and `gateway/.env.example`). Quarkus management
+  endpoints remain exempt.
+- **`PublicEndpointGuardFilter`**: forbidden auth headers (`Authorization`,
+  `X-User-*`) on public paths → `400 Bad Request`.
+- **`RedisSignupRateLimiter`**: per-IP rate limit shared across replicas via
+  Redis, mirroring the gateway's limit.
+- **`TrustedProxyResolver`**: `X-Forwarded-For` only honored from CIDRs in
+  `IDENTITY_TRUSTED_PROXIES`.
+
+In prod-like topologies, keep business services internal: remove the
+`ports:` block on `identity` (or use the `gateway-only` compose profile)
+and set `IDENTITY_TRUSTED_PROXIES` to the gateway's address.
+
 ## Troubleshooting
 
 - **Port already in use** — override `POSTGRES_PORT`, `KAFKA_PORT`, or
